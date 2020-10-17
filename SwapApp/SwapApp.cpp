@@ -2,66 +2,66 @@
 #include <Windows.h>
 #include <cstring>
 
+/* Static import */
 //#include "MemoryLib.h"
 
+/*
+#define BUFF_SIZE 65536
 
-//#define BUFF_SIZE 65536
-
-//char buffer[BUFF_SIZE];
+char buffer[BUFF_SIZE];
+*/
 
 typedef int VMSwap(const char*, const char*, HANDLE);
 
-//int Find(char* buf, int bufLen, const char* target)
-//int VirtualMemorySwap(const char* target, const char* replace, HANDLE hProc);
+/* 
+int Find(char* buf, int bufLen, const char* target)
+int VirtualMemorySwap(const char* target, const char* replace, HANDLE hProc); 
+*/
 void showModules(HANDLE hProc);
 
 int main() {
-	/*int pid = GetCurrentProcessId();
-
-	HANDLE hProc = OpenProcess(
-		PROCESS_ALL_ACCESS | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
-		false,
-		pid);*/
-
 	HWND hWnd = FindWindow(0, TEXT("TextOutApp"));
+
 	if (hWnd == 0) {
 		std::cerr << "Cannot find window." << std::endl;
 	}
 	else {
-		HINSTANCE hModule = LoadLibrary(TEXT("../MemoryLib/Debug/MemoryLib.dll"));
+		/* Dynamic library import */
+		
+		/*HINSTANCE hModule = LoadLibrary(TEXT("../MemoryLib/Debug/MemoryLib.dll"));
 
 		if (!hModule) {
 			std::cerr << "Cannot load Dll." << std::endl;
+			return -1;
+		}
+		
+		VMSwap* pVMSwap = (VMSwap*)GetProcAddress(hModule, "VirtualMemorySwap");*/
+		
+		DWORD pId;
+		GetWindowThreadProcessId(hWnd, &pId);
+
+		HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pId);
+
+		if (!hProc) {
+			std::cerr << "Cannot open another process." << std::endl;
+			return -1;
 		}
 		else {
-			VMSwap* pVMSwap = (VMSwap*)GetProcAddress(hModule, "VirtualMemorySwap");
+			char target[] = "Hello";
+			char replace[] = "olleH";
 
-			DWORD pId, currpId;
-			GetWindowThreadProcessId(hWnd, &pId);
+			int res = 0;
+			/* Static import call */
+			//res = VirtualMemorySwap(target, replace, hProc);
 
-			HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pId);
+			/* Dynamic import call */
+			//int res = pVMSwap(target, replace, hProc);
 
-			if (!hProc) {
-				std::cerr << "Cannot open another process." << std::endl;
-			}
-			else {
-				char target[] = "Hello";
-				char replace[] = "olleH";
-
-				// Static import call
-				//int res = VirtualMemorySwap(target, replace, hProc);
-
-				// Dynamic Import call
-				int res = pVMSwap(target, replace, hProc);
-
-				std::cerr << res << std::endl;
-
-				/*show_modules(hProc);
-				printf("Total memory used: %luKB\n", usage / 1024);*/
-			}
-
-			FreeLibrary(hModule);
+			std::cerr << res << std::endl;
+			return res;
 		}
+
+		//FreeLibrary(hModule);
 
 	}
 }
@@ -148,57 +148,59 @@ void showModules(HANDLE hProc) {
 	printf("Total memory used: %luKB\n", usage / 1024);
 }
 
-//int Find(char* buf, int bufLen, const char* target) {
-//	int tLen = strlen(target);
-//	int tIndex = 0;
-//	bool match = FALSE;
-//
-//	for (int i = 0;
-//		i < bufLen && tIndex < tLen;
-//		i++) {
-//		if (buf[i] == target[tIndex]) {
-//			match = TRUE;
-//			tIndex++;
-//		}
-//		else if (match) {
-//			match = FALSE;
-//			tIndex = 0;
-//		}
-//
-//		if (tIndex >= tLen && match) {
-//			return i - tLen + 1;
-//		}
-//	}
-//
-//	return -1;
-//}
-//
-//int VirtualMemorySwap(const char* target, const char* replace, HANDLE hProc) {
-//	unsigned char* p = NULL;
-//	MEMORY_BASIC_INFORMATION info;
-//	SIZE_T bRead = 0;
-//
-//	for (p = NULL;
-//		VirtualQueryEx(hProc, p, &info, sizeof(info)) == sizeof(info);
-//		p += info.RegionSize) {
-//		if (info.State == MEM_COMMIT && info.AllocationProtect == PAGE_READWRITE && !(info.Protect == PAGE_NOACCESS))
-//		{
-//
-//			if (ReadProcessMemory(hProc, (LPCVOID)p, buffer, info.RegionSize, &bRead)) {
-//				int offset = Find(buffer, bRead, target);
-//
-//				if (offset != -1) {
-//					size_t len = strlen(replace);
-//					SIZE_T bWritten = 0;
-//
-//					if (WriteProcessMemory(hProc, (LPVOID)(p + offset), (LPCVOID)replace, len, &bWritten))
-//						return TRUE;
-//					else
-//						return FALSE;
-//				}
-//			}
-//
-//		}
-//	}
-//	return FALSE;
-//}
+/*
+int Find(char* buf, int bufLen, const char* target) {
+	int tLen = strlen(target);
+	int tIndex = 0;
+	bool match = FALSE;
+
+	for (int i = 0;
+		i < bufLen && tIndex < tLen;
+		i++) {
+		if (buf[i] == target[tIndex]) {
+			match = TRUE;
+			tIndex++;
+		}
+		else if (match) {
+			match = FALSE;
+			tIndex = 0;
+		}
+
+		if (tIndex >= tLen && match) {
+			return i - tLen + 1;
+		}
+	}
+
+	return -1;
+}
+
+int VirtualMemorySwap(const char* target, const char* replace, HANDLE hProc) {
+	unsigned char* p = NULL;
+	MEMORY_BASIC_INFORMATION info;
+	SIZE_T bRead = 0;
+
+	for (p = NULL;
+		VirtualQueryEx(hProc, p, &info, sizeof(info)) == sizeof(info);
+		p += info.RegionSize) {
+		if (info.State == MEM_COMMIT && info.AllocationProtect == PAGE_READWRITE && !(info.Protect == PAGE_NOACCESS))
+		{
+
+			if (ReadProcessMemory(hProc, (LPCVOID)p, buffer, info.RegionSize, &bRead)) {
+				int offset = Find(buffer, bRead, target);
+
+				if (offset != -1) {
+					size_t len = strlen(replace);
+					SIZE_T bWritten = 0;
+
+					if (WriteProcessMemory(hProc, (LPVOID)(p + offset), (LPCVOID)replace, len, &bWritten))
+						return TRUE;
+					else
+						return FALSE;
+				}
+			}
+
+		}
+	}
+	return FALSE;
+}
+*/
