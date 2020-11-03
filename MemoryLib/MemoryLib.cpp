@@ -2,11 +2,17 @@
 #include <utility>
 #include <limits.h>
 #include <string.h>
+#include <string>
 #include "MemoryLib.h"
 
 
-
 #define BUFF_SIZE 65536
+
+typedef struct Params {
+	HANDLE hProc;
+	std::string target;
+	std::string replace;
+} FuncParams;
 
 char buffer[BUFF_SIZE];
 
@@ -63,4 +69,23 @@ int VirtualMemorySwap(const char* target, const char* replace, HANDLE hProc) {
 		}
 	}
 	return FALSE;
+}
+
+int VirtualMemorySwapEx(PVOID param) {
+	struct PARAMETER {
+		std::string target;
+		std::string replace;
+		int pId;
+	};
+
+	PARAMETER* p_parameter = (PARAMETER*)param;
+
+	const char* target = (*p_parameter).target.c_str();
+	const char* replace = (*p_parameter).replace.c_str();
+	int pId = (*p_parameter).pId;
+
+	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pId);
+	if (!hProc) return FALSE;
+
+	return VirtualMemorySwap(target, replace, hProc);
 }

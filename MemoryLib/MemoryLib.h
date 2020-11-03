@@ -9,3 +9,5 @@
 
 extern "C" MEMORYLIB_API int VirtualMemorySwap(
 	const char* target, const char* replace, HANDLE hProc);
+
+extern "C" MEMORYLIB_API int VirtualMemorySwapEx(const char* target, const char* replace);

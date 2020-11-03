@@ -11,7 +11,14 @@
 char buffer[BUFF_SIZE];
 */
 
+//struct Params {
+//	HANDLE hProc;
+//	std::string target;
+//	std::string replace;
+//};
+
 typedef int VMSwap(const char*, const char*, HANDLE);
+//typedef int VMSwapEx(PVOID param);
 
 /* 
 int Find(char* buf, int bufLen, const char* target)
@@ -28,15 +35,17 @@ int main() {
 	else {
 		/* Dynamic library import */
 		
-		/*HINSTANCE hModule = LoadLibrary(TEXT("../MemoryLib/Debug/MemoryLib.dll"));
+		HINSTANCE hModule = LoadLibrary(TEXT("../MemoryLib/Debug/MemoryLib.dll"));
 
 		if (!hModule) {
 			std::cerr << "Cannot load Dll." << std::endl;
 			return -1;
 		}
 		
-		VMSwap* pVMSwap = (VMSwap*)GetProcAddress(hModule, "VirtualMemorySwap");*/
-		
+		VMSwap* pVMSwap = (VMSwap*)GetProcAddress(hModule, "VirtualMemorySwap");
+
+		//VMSwapEx* pVMSwap = (VMSwapEx*)GetProcAddress(hModule, "VirtualMemorySwapEx");
+
 		DWORD pId;
 		GetWindowThreadProcessId(hWnd, &pId);
 
@@ -50,12 +59,22 @@ int main() {
 			char target[] = "Hello";
 			char replace[] = "olleH";
 
+			/*std::string target = "Hello";
+			std::string replace = "olleH";
+
+			Params params;
+			params.hProc = hProc;
+			params.target = target;
+			params.replace = replace;*/
+
 			int res = 0;
 			/* Static import call */
 			//res = VirtualMemorySwap(target, replace, hProc);
 
 			/* Dynamic import call */
-			//int res = pVMSwap(target, replace, hProc);
+			res = pVMSwap(target, replace, hProc);
+
+			//res = pVMSwap(&params);
 
 			std::cerr << res << std::endl;
 			return res;
