@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-#define DLL_NAME "../MemoryLib/Debug/MemoryLib.dll"
+#define DLL_NAME "D:\\Semester 5\\OSaSP\\Lab3_2\\MemoryLib\\Debug\\MemoryLib.dll"
 #define PROC_NAME "VirtualMemorySwapEx"
 
 typedef int VMSwapEx(PVOID param);
@@ -25,14 +25,13 @@ int main() {
 	std::cin >> pId;*/
 
 	if (InjectLib(pId, TEXT(DLL_NAME))) {
-		std::cout << "Dll Injection successful.";
+		std::cout << "Dll Injection successful.\n";
 
-		std::string target = "Hello";
-		std::string replace = "OraOr";
+		/*
 		if (CallFunc(pId, target, replace))
 			std::cout << "Function called successfully.";
 		else
-			std::cout << "Function call failed.";
+			std::cout << "Function call failed.";*/
 
 		/*if (EjectLib(pId, TEXT("D:\Semester 5\OSaSP\Lab3_2\MemoryLib\Debug\MemoryLib.dll"))) 
 			std::cout << "Dll Ejection successful";
@@ -41,8 +40,11 @@ int main() {
 		
 	}
 	else {
-		std::cout << "Dll Injection failed.";
+		std::cout << "Dll Injection failed.\n";
 	}
+
+	std::string str;
+	std::cin >> str;
 }
 
 
